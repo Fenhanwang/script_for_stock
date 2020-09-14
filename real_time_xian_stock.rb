@@ -60,6 +60,15 @@ class RealTimeXianStock
 
 
   def pa_wang_ye
+
+    if @db.collection_names.size == 0
+      crawl_stock_name
+    else
+      @stock_abb_array = @client[:stocks].find({}).map{|e| e["stock_name"]}
+    end
+
+    test_string = @stock_abb_array[0]
+
     headless = Headless.new
     headless.start
 
@@ -75,12 +84,40 @@ class RealTimeXianStock
 
     Selenium::WebDriver::Chrome.driver_path="/home/fen/Documents/script_for_stock/chromedriver"
     driver = Selenium::WebDriver.for :chrome
-    driver.get("http://google.com")
+    wait = Selenium::WebDriver::Wait.new(:timeout => 60)
+    driver.manage.timeouts.implicit_wait = 10
+    driver.get("https://finance.yahoo.com/")
     
     # driver = Selenium::WebDriver.for :firefox
     # driver.navigate.to 'https://finance.yahoo.com/'
+    puts "------------"
     puts driver.title
-    sleep 10
+    puts "--------"
+    # puts "find title" if wait.until {
+    #   driver.title.displayed?
+    # }
+    sleep 1
+    puts "find input " if wait.until {
+      driver.find_element(:xpath, "//*[@id='search-assist-input']/.//input").displayed?
+    }
+    search_input = driver.find_element(:xpath, "//*[@id='search-assist-input']/.//input")
+    
+    puts "find input " if wait.until {
+      driver.find_element(:id, "search-button").displayed?
+    }
+    button       = driver.find_element(:id, "search-button")
+    # puts "find title" if wait.until {
+    #   driver.title.displayed?
+    # }
+    # sleep 3 
+    # driver.find_element(:id, "")
+    
+    
+    binding.pry
+    search_input.send_keys "#{test_string}"
+    button.click
+
+     
     headless.destroy
   end
 
